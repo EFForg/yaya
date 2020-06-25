@@ -42,11 +42,9 @@ var rules []Rule
 
 // Paths
 var home, _ = os.UserHomeDir()
-var configdir = path.Join(home, ".yaya")
-var rulesetsdir = path.Join(configdir, "rulsets")
-
-// Database
-var dbPath = path.Join(configdir, "yaya.db")
+var configPath = path.Join(home, ".yaya")
+var rulesetsPath = path.Join(configPath, "rulsets")
+var dbPath = path.Join(configPath, "yaya.db")
 
 func main() {
 	if !(len(os.Args) >= 2) || os.Args[1] == "-h" {
@@ -55,6 +53,7 @@ func main() {
 
 	db := openDB()
 	defer db.Close()
+	defer yara.Finalize()
 
 	// Migrate the schema
 	db.AutoMigrate(&Rule{})
@@ -118,7 +117,7 @@ func loadRulesets(rulesets *[]Ruleset) {
 func pullRulesets() {
 	loadRulesets(&rulesets)
 	for _, ruleset := range rulesets {
-		rulesetPath := path.Join(rulesetsdir, ruleset.Name)
+		rulesetPath := path.Join(rulesetsPath, ruleset.Name)
 		pathExists, _ := Exists(rulesetPath)
 		if !pathExists {
 			fmt.Printf("git clone %q\n", ruleset.URL)
@@ -151,14 +150,16 @@ func findRules() {
 	defer db.Close()
 	loadRulesets(&rulesets)
 	for _, ruleset := range rulesets {
-		rulesetPath := path.Join(rulesetsdir, ruleset.Name)
+		rulesetPath := path.Join(rulesetsPath, ruleset.Name)
 		pathExists, _ := Exists(rulesetPath)
 		if !ruleset.Enabled {
 			continue
 		}
-		fmt.Printf("scanning %q located at %s\n", ruleset.Name, rulesetPath)
+		fmt.Printf("loading %q located at %s\n", ruleset.Name, rulesetPath)
 		if !pathExists {
-			Warning(fmt.Errorf("the ruleset path %s doesn't exist, try running an update", rulesetPath))
+			Warning(fmt.Errorf("the ruleset path %s doesn't exist, disabling for now", rulesetPath))
+			ruleset.Enabled = false
+			db.Save(&ruleset)
 			continue
 		}
 
@@ -218,48 +219,35 @@ func addRules(path string) {
 
 // runScan Scan a path recursively with every rule in the database
 func runScan(path string) {
-	loadRulesets(&rulesets)
 	db := openDB()
 	defer db.Close()
+	db.Where("enabled = ?", true).Find(&rules)
+	var matches yara.MatchRules
 
-	//db.Where("enabled = ?", true).Find(&rulesets)
-	for _, ruleset := range rulesets {
-		c, err := yara.NewCompiler()
-		if err != nil {
-			log.Fatalf("Failed to initialize YARA compiler: %s", err)
-		}
-		db.Where("enabled = ?", true).Model(&ruleset).Related(&rules)
-		fmt.Printf("Ruleset %s scanning with %d rules\n", ruleset.Name, len(rules))
-		for _, rule := range rules {
-			f, err := os.Open(rule.Path)
-			if err != nil {
-				log.Printf("Could not open rule file %s: %s\n", rule.Path, err)
-			}
-			err = c.AddFile(f, rule.Namespace)
-			f.Close()
-			if err != nil {
-				log.Printf("Could not parse rule file %s: %s", rule.Path, err)
-				break
-			}
-		}
-		rules, err := c.GetRules()
-		if err != nil {
-			log.Printf("Failed to compile rules: %s", err)
-			continue
-		}
-
-		var matches yara.MatchRules
-
-		log.Printf("Scanning file %s... ", path)
-		matches, err = rules.ScanFile(path, 0, 0)
-		printMatches(matches, err)
-		//fmt.Printf("Rules: %q\n\nMatches: %q", rules, matches)
-		/*
-			for _, filename := range args {
-				log.Printf("Scanning file %s... ", path)
-				err := rules.ScanFile(path, 0, 0, &m)
-				printMatches(m, err)
-			}
-		*/
+	c, err := yara.NewCompiler()
+	if err != nil {
+		log.Fatalf("Failed to initialize YARA compiler: %s", err)
 	}
+
+	fmt.Printf("Compiling %d rules\n", len(rules))
+	for _, rule := range rules {
+		f, err := os.Open(rule.Path)
+		if err != nil {
+			log.Printf("Could not open rule file %s: %s\n", rule.Path, err)
+		}
+		err = c.AddFile(f, rule.Namespace)
+		f.Close()
+		if err != nil {
+			log.Printf("Could not parse rule file %s: %s", rule.Path, err)
+			break
+		}
+	}
+	rules, err := c.GetRules()
+	if err != nil {
+		log.Panicf("Failed to compile rules: %s", err)
+	}
+
+	log.Printf("Scanning file %s... ", path)
+	matches, err = rules.ScanFile(path, 0, 0)
+	printMatches(matches, err)
 }

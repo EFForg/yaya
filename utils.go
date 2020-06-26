@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/hillu/go-yara"
 	"github.com/jinzhu/gorm"
@@ -16,6 +18,7 @@ import (
 // Consts
 const awesomeListURL = "https://raw.githubusercontent.com/InQuest/awesome-yara/master/README.md"
 
+// updateAwesomelist updates the database with entries from the Awesome Yara list on github
 func updateAwesomelist() {
 	resp, err := http.Get(awesomeListURL)
 	db := openDB()
@@ -49,9 +52,23 @@ func updateAwesomelist() {
 					continue
 				}
 
+				name := match[1]
+				reg, _ := regexp.Compile("/tree.*")
+				url := strings.TrimSuffix(match[2], "/")
+				url = reg.ReplaceAllString(url, "")
+				url += ".git"
 				scanner.Scan()
-				Description := scanner.Text()
-				ruleset := Ruleset{Name: match[1], URL: match[2], Description: Description}
+				description := scanner.Text()
+
+				// these are giant useless rulesets or duplicates
+				if url == "https://github.com/SupportIntelligence/Icewater.git" ||
+					url == "https://github.com/mikesxrs/Open-Source-YARA-rules.git" {
+
+					continue
+				}
+
+				ruleset := Ruleset{Name: name, URL: url, Description: description}
+
 				// Create or update ruleset in db
 				db.Where(Ruleset{Name: ruleset.Name}).Assign(ruleset).FirstOrCreate(&ruleset)
 				rulesets = append(rulesets, ruleset)

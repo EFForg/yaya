@@ -31,23 +31,6 @@ type Ruleset struct {
 	Rules       []Rule
 }
 
-// Rule is an individual YARA rule
-type Rule struct {
-	gorm.Model
-	Namespace string
-	Path      string
-	Enabled   bool `gorm:"default:true"`
-	Ruleset   Ruleset
-	RulesetID uint
-}
-
-func (rule *Rule) toggleEnabled() {
-	db := openDB()
-	defer db.Close()
-	rule.Enabled = !rule.Enabled
-	db.Save(&rule)
-}
-
 func (ruleset *Ruleset) toggleEnabled() {
 	db := openDB()
 	defer db.Close()
@@ -65,8 +48,27 @@ func (ruleset *Ruleset) getStatus() string {
 	return status
 }
 
+// Rule is an individual YARA rule
+type Rule struct {
+	gorm.Model
+	Namespace string
+	Path      string
+	Enabled   bool `gorm:"default:true"`
+	Ruleset   Ruleset
+	RulesetID uint
+}
+
+func (rule *Rule) toggleEnabled() {
+	db := openDB()
+	defer db.Close()
+	rule.Enabled = !rule.Enabled
+	db.Save(&rule)
+}
+
+// Collections
 var rulesets []Ruleset
 var rules []Rule
+var scanResults = map[string][]yara.MatchRule{}
 
 // Paths
 var home, _ = os.UserHomeDir()
@@ -75,6 +77,9 @@ var rulesetsPath = path.Join(configPath, "rulsets")
 var dbPath = path.Join(configPath, "yaya.db")
 
 func main() {
+	// Make config directories if they don't exist
+	os.MkdirAll(rulesetsPath, os.ModePerm)
+
 	if !(len(os.Args) >= 2) || os.Args[1] == "-h" {
 		usage()
 	}
@@ -304,8 +309,7 @@ func addRuleset(path string) {
 func runScan(scanPath string) {
 	db := openDB()
 	defer db.Close()
-	var matches yara.MatchRules
-	var scanPaths []string
+
 	filepath.Walk(scanPath, func(path string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
@@ -313,8 +317,8 @@ func runScan(scanPath string) {
 
 		// check if it is a regular file (not dir)
 		if info.Mode().IsRegular() {
-
-			scanPaths = append(scanPaths, path)
+			var m []yara.MatchRule
+			scanResults[path] = m
 		}
 		return nil
 	})
@@ -329,7 +333,7 @@ func runScan(scanPath string) {
 
 		db.Model(&ruleset).Where("enabled = ?", true).Related(&rules)
 
-		//fmt.Printf("Compiling %d rules\n", len(rules))
+		log.Printf("Scanning with %s. Compiling %d rules\n", ruleset.Name, len(rules))
 		for _, rule := range rules {
 			f, err := os.Open(rule.Path)
 			if err != nil {
@@ -346,12 +350,15 @@ func runScan(scanPath string) {
 		if err != nil {
 			log.Panicf("Failed to compile rules: %s", err)
 		}
-		for _, path := range scanPaths {
-			log.Printf("Scanning file %s... ", path)
-			matches, err = rules.ScanFile(path, 0, 0)
-			printMatches(matches, err)
+		for path, matches := range scanResults {
+			results, err := rules.ScanFile(path, 0, 0)
+			if err != nil {
+				Warning(err)
+			}
+			scanResults[path] = append(matches, results...)
 		}
 
 	}
-
+	printMatches(scanResults)
+	saveMatchesJSON(scanResults)
 }

@@ -100,18 +100,38 @@ func Warning(err error) {
 	}
 }
 
-func printMatches(m []yara.MatchRule, err error) {
-	if err == nil {
-		if len(m) > 0 {
-			for _, match := range m {
-				log.Printf("- [%s] %s ", match.Namespace, match.Rule)
+// printMatches prints match results to the screen in a human readable way
+func printMatches(results map[string][]yara.MatchRule) {
+	for filePath, matches := range results {
+		log.Printf("%s:", filePath)
+		if len(matches) > 0 {
+			for _, match := range matches {
+				log.Printf("  - [%s] %s ", match.Namespace, match.Rule)
 			}
 		} else {
-			log.Print("no matches.")
+			log.Print("  - no matches.")
 		}
-	} else {
-		log.Printf("error: %s.", err)
 	}
+}
+
+// saveMatchesJSON saves match results to json file for later processing
+func saveMatchesJSON(results map[string][]yara.MatchRule) {
+	outpath := "/tmp/yaya.json"
+
+	txt, err := json.Marshal(results)
+	if err != nil {
+		log.Panicf("Marshaling error: %s", err)
+	}
+
+	f, err := os.Create(outpath)
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	f.Write(txt)
+	log.Printf("json output written to %s", outpath)
 }
 
 // usage prints help about the program

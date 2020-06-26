@@ -53,7 +53,6 @@ func updateAwesomelist() {
 				Description := scanner.Text()
 				ruleset := Ruleset{Name: match[1], URL: match[2], Description: Description}
 				// Create or update ruleset in db
-				// Ping
 				db.Where(Ruleset{Name: ruleset.Name}).Assign(ruleset).FirstOrCreate(&ruleset)
 				rulesets = append(rulesets, ruleset)
 			}
@@ -115,8 +114,16 @@ func usage() {
 
 func openDB() *gorm.DB {
 	db, err := gorm.Open("sqlite3", dbPath)
+	//db.LogMode(true)
 	if err != nil {
 		panic("failed to connect database")
 	}
 	return db
+}
+
+func printRulesets(rulesets []Ruleset) {
+	fmt.Printf("%8s %s\t%45.45s\t%.45s\n", "Enabled", "ID", "Name", "Description")
+	for _, ruleset := range rulesets {
+		fmt.Printf("%8s %d\t%45.45s\t%.45s\n", ruleset.getStatus(), ruleset.ID, ruleset.Name, ruleset.Description)
+	}
 }

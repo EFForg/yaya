@@ -12,3 +12,4 @@
 - [ ] REPL
 - [ ] Multiple output formats
 - [ ] Scan Processes
+- [ ] Add rulesets from filepath

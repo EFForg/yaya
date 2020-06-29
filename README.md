@@ -5,10 +5,10 @@
 Automatically curate open source yara rules and run scans
 
 ## Installation
-`go get github.com/cooperq/yaya`
-
-`go install github.com/cooperq/yaya`
-
+```
+go get github.com/cooperq/yaya
+go install github.com/cooperq/yaya
+```
 ### Dependencies 
 Yaya depends on the following packages outside the standard library:
 * https://github.com/go-git/go-git

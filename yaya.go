@@ -351,7 +351,8 @@ func runScan(scanPath string) {
 			log.Panicf("Failed to compile rules: %s", err)
 		}
 		for path, matches := range scanResults {
-			results, err := rules.ScanFile(path, 0, 0)
+			var results yara.MatchRules
+			err := rules.ScanFile(path, 0, 0, &results)
 			if err != nil {
 				Warning(err)
 			}

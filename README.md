@@ -6,6 +6,7 @@ Automatically curate open source yara rules and run scans
 
 ## Installation
 `go get github.com/cooperq/yaya`
+
 `go install github.com/cooperq/yaya`
 
 ### Dependencies 
@@ -13,6 +14,9 @@ Yaya depends on the following packages outside the standard library:
 * https://github.com/go-git/go-git
 * https://github.com/hillu/go-yara
 * https://github.com/jinzhu/gorm
+
+You must also install the yara4 C libraries. We reccomend you install these from source: 
+https://yara.readthedocs.io/en/stable/gettingstarted.html
 
 
 ## Running

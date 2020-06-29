@@ -20,9 +20,7 @@ https://yara.readthedocs.io/en/stable/gettingstarted.html
 
 
 ## Running
-    yaya update
-    yaya add https://github.com/example/exampleYaraRules.git
-    yaya scan /path/to/scan
+[![asciicast](https://asciinema.org/a/344120.svg)](https://asciinema.org/a/344120)
 
 ## Usage
 ```

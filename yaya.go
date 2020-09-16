@@ -128,8 +128,9 @@ func initYaya(db *gorm.DB) {
 		return
 	}
 	fmt.Println("Running YAYA for the first time. Gathering initial rulesets.")
-	updateAwesomelist()
+	installDefaultRules()
 	updateRules()
+	os.Exit(0)
 }
 
 // updateRules checks git repostitories for any new rules that have been added

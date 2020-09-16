@@ -18,66 +18,16 @@ import (
 // Consts
 const awesomeListURL = "https://raw.githubusercontent.com/InQuest/awesome-yara/master/README.md"
 
-// updateAwesomelist updates the database with entries from the Awesome Yara list on github
-func updateAwesomelist() {
-	resp, err := http.Get(awesomeListURL)
+// installDefaultRules clones the rulesets listed in defaultRulesets
+func installDefaultRules() {
 	db := openDB()
 	defer db.Close()
-	if err != nil {
-		log.Fatalln(err)
-		db := openDB()
-		defer db.Close()
+
+	for _, ruleset := range defaultRulesets {
+		// Create or update ruleset in db
+		db.Where(Ruleset{Name: ruleset.Name}).Assign(ruleset).FirstOrCreate(&ruleset)
+		rulesets = append(rulesets, ruleset)
 	}
-	if resp.Status != "200 OK" {
-		//body, _ := ioutil.ReadAll(resp.Body)
-		//fmt.Println(string(body))
-
-		log.Fatalln(resp.Status, "Could not fetch awesome yara")
-	}
-
-	scanner := bufio.NewScanner(resp.Body)
-	flag := false
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "## Rules" {
-			flag = true
-		} else if line == "## Tools" {
-			break
-		} else {
-			if flag {
-				re := regexp.MustCompile(`\[(.*)\]\((https://github.*)\)`)
-				match := re.FindStringSubmatch(line)
-				if len(match) < 3 {
-					// Not a successfull match so lets continue to the next line
-					continue
-				}
-
-				name := match[1]
-				reg, _ := regexp.Compile("/tree.*")
-				url := strings.TrimSuffix(match[2], "/")
-				url = reg.ReplaceAllString(url, "")
-				url += ".git"
-				scanner.Scan()
-				description := scanner.Text()
-
-				// these are giant useless rulesets or duplicates
-				if url == "https://github.com/SupportIntelligence/Icewater.git" ||
-					url == "https://github.com/mikesxrs/Open-Source-YARA-rules.git" {
-
-					continue
-				}
-
-				ruleset := Ruleset{Name: name, URL: url, Description: description}
-
-				// Create or update ruleset in db
-				db.Where(Ruleset{Name: ruleset.Name}).Assign(ruleset).FirstOrCreate(&ruleset)
-				rulesets = append(rulesets, ruleset)
-			}
-		}
-	}
-
-	resp.Body.Close()
-
 	fmt.Printf("Downloading %d rulesets...\n", len(rulesets))
 }
 

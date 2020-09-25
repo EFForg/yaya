@@ -1,4 +1,4 @@
-!["Bender from futurama dressed up like the Terminator"](https://i.pinimg.com/originals/04/e3/cf/04e3cf941acd1d64eb42aa3cced37d11.jpg "YAYA - Yet Another Yara Automaton")
+!["The YAYA logo and automaton mascot"](https://www.eff.org/files/banner_library/yaya_yaya_banner.png "YAYA - Yet Another Yara Automaton")
 
 # YAYA - *Yet Another Yara Automaton*
 

@@ -1,14 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"regexp"
-	"strings"
 
 	"github.com/hillu/go-yara"
 	"github.com/jinzhu/gorm"

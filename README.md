@@ -17,7 +17,7 @@ Yaya depends on the following packages outside the standard library:
 * https://github.com/hillu/go-yara
 * https://github.com/jinzhu/gorm
 
-You must also install the yara4 C libraries. We reccomend you install these from source: 
+You must also install the yara4 C libraries. We recommend you install these from source: 
 https://yara.readthedocs.io/en/stable/gettingstarted.html
 
 

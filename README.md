@@ -6,8 +6,8 @@ Automatically curate open source yara rules and run scans
 
 ## Installation
 ```
-go get github.com/cooperq/yaya
-cd $GOPATH/src/github.com/cooperq/yaya
+go get github.com/EFForg/yaya
+cd $GOPATH/src/github.com/EFForg/yaya
 go build 
 go install 
 ```

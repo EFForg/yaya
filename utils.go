@@ -91,7 +91,8 @@ func usage() {
 		"\tupdate - update rulesets\n"+
 		"\tedit - ban or remove rulesets\n"+
 		"\tadd - add a custom ruleset, located at <path>\n"+
-		"\tscan - perform a yara scan on the directory at <path>\n")
+		"\tscan - perform a yara scan on the directory at <path>\n"+
+		"\texport - export all yara rules in single yar file in <path>\n")
 	os.Exit(1)
 }
 

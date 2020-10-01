@@ -114,6 +114,11 @@ func main() {
 			log.Fatalln("You must specifcy a path to scan.")
 		}
 		runScan(path)
+	case "export":
+		if path == "" {
+			log.Fatalln("You must specifcy an output path.")
+		}		
+		exportRules(path)
 	default:
 		fmt.Println("Command not recognized")
 		usage()
@@ -363,4 +368,37 @@ func runScan(scanPath string) {
 	}
 	printMatches(scanResults)
 	saveMatchesJSON(scanResults)
+}
+
+func exportRules(outputPath string) {
+	db := openDB()
+	defer db.Close()
+	
+	db.Where("enabled = ?", true).Find(&rulesets)
+	
+	c, err := yara.NewCompiler()
+	if err != nil {
+		log.Fatalf("Failed to initialize YARA compiler: %s", err)
+	}
+
+	for _, ruleset := range rulesets {
+		db.Model(&ruleset).Where("enabled = ?", true).Related(&rules)
+		for _, rule := range rules {
+			f, err := os.Open(rule.Path)
+			if err != nil {
+				log.Printf("Could not open rule file %s: %s\n", rule.Path, err)
+			}
+			err = c.AddFile(f, rule.Namespace)
+			f.Close()
+			if err != nil {
+				log.Printf("Could not parse rule file %s: %s", rule.Path, err)
+				break
+			}			
+		}
+	}
+	mainRule, err := c.GetRules()
+	if err != nil {
+		log.Panicf("Failed to compile rules: %s", err)
+	}
+	mainRule.Save(outputPath)
 }

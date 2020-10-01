@@ -33,5 +33,5 @@ Commands:
 	edit - ban or remove rulesets
 	add - add a custom ruleset, located at <path>
 	scan - perform a yara scan on the directory at <path>
-        export - export all yara rules in single yar file in <path>
+	export - export all yara rules in single yar file in <path>
 ```

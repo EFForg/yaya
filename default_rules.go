@@ -36,4 +36,5 @@ var defaultRulesets = [...]Ruleset{
 	Ruleset{Name: "Yara-Unprotect", URL: "https://github.com/fr0gger/Yara-Unprotect.git", Description: "Rules created for the Unprotect Project for detecting malware evasion techniques.", Enabled: true},
 	Ruleset{Name: "PasteHunter", URL: "https://github.com/kevthehermit/PasteHunter.git", Description: "Custom yara rules", Enabled: true},
 	Ruleset{Name: "reversinglabs-yara-rules", URL: "https://github.com/reversinglabs/reversinglabs-yara-rules.git", Description: "Custom yara rules", Enabled: true},
+	Ruleset{Name: "yara-forensics", URL: "https://github.com/Xumeiquer/yara-forensics.git", Description: "Set of Yara rules for finding files using magics headers", Enabled: true},
 }

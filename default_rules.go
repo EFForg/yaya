@@ -36,6 +36,7 @@ var defaultRulesets = [...]Ruleset{
 	Ruleset{Name: "TjadaNel Rules", URL: "https://github.com/tjadanel/yara_repo.git", Description: "Small collection of malware rules.", Enabled: true},
 	Ruleset{Name: "VectraThreatLab Rules", URL: "https://github.com/VectraThreatLab/reyara.git", Description: "YARA rules for identifying anti-RE malware techniques.", Enabled: true},
 	Ruleset{Name: "x64dbg Signatures", URL: "https://github.com/x64dbg/yarasigs.git", Description: "Collection of interesting packer, compiler, and crypto identification signatures.", Enabled: true},
+	Ruleset{Name: "yara-forensics", URL: "https://github.com/Xumeiquer/yara-forensics.git", Description: "Set of Yara rules for finding files using magics headers", Enabled: true},
 	Ruleset{Name: "yara-rules", URL: "https://github.com/Yara-Rules/rules", Description: "Community project with YARA rules", Enabled: true},
 	Ruleset{Name: "Yara-Unprotect", URL: "https://github.com/fr0gger/Yara-Unprotect.git", Description: "Rules created for the Unprotect Project for detecting malware evasion techniques.", Enabled: true},
 	Ruleset{Name: "yara4pentesters", URL: "https://github.com/DiabloHorn/yara4pentesters.git", Description: "Rules to identify files containing juicy information like usernames, passwords etc.", Enabled: true},

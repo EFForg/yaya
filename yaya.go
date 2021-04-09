@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"io/ioutil"
 
 	"github.com/go-git/go-git"
 	"github.com/hillu/go-yara"
@@ -106,19 +107,24 @@ func main() {
 		editRules()
 	case "add":
 		if path == "" {
-			log.Fatalln("You must specifcy a ruleset path or github url to add.")
+			log.Fatalln("You must specify a ruleset path or github url to add.")
 		}
 		addRuleset(path)
 	case "scan":
 		if path == "" {
-			log.Fatalln("You must specifcy a path to scan.")
+			log.Fatalln("You must specify a path to scan.")
 		}
 		runScan(path)
 	case "export":
 		if path == "" {
-			log.Fatalln("You must specifcy an output path.")
+			log.Fatalln("You must specify an output path.")
 		}		
 		exportRules(path)
+	case "exportcompiled":
+		if path == "" {
+			log.Fatalln("You must specify an output path.")
+		}		
+		exportRulesCompiled(path)		
 	default:
 		fmt.Println("Command not recognized")
 		usage()
@@ -370,7 +376,38 @@ func runScan(scanPath string) {
 	saveMatchesJSON(scanResults)
 }
 
+// Export rules in plaintext instead of compiled
 func exportRules(outputPath string) {
+	db := openDB()
+	defer db.Close()
+	
+	db.Where("enabled = ?", true).Find(&rulesets)
+
+    outFile, err := os.Create(outputPath)
+	if err != nil {
+		log.Printf("Could not open rule file %s: %s\n", outputPath, err)
+	}
+	defer outFile.Close()
+	
+	for _, ruleset := range rulesets {
+		db.Model(&ruleset).Where("enabled = ?", true).Related(&rules)
+		for _, rule := range rules {
+			dat, err := ioutil.ReadFile(rule.Path)
+			if err != nil {
+				log.Printf("Could not open rule file %s: %s\n", rule.Path, err)
+				return
+			}
+
+			outFile.Write(dat)
+			outFile.WriteString("\n")
+			outFile.Sync()
+		}
+	}
+
+
+}
+
+func exportRulesCompiled(outputPath string) {
 	db := openDB()
 	defer db.Close()
 	

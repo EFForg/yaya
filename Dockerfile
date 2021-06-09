@@ -18,17 +18,15 @@ RUN apk add libmagic
 
 WORKDIR /src
 
-RUN wget https://github.com/VirusTotal/yara/archive/refs/tags/v4.0.0.tar.gz && mkdir yara && cd yara && tar xf ../v4.0.0.tar.gz \
-    && cd yara-4.0.0/ && ./bootstrap.sh && ./configure --enable-cuckoo --enable-dotnet && make && make install
+RUN wget https://github.com/VirusTotal/yara/archive/refs/tags/v4.1.0.tar.gz && mkdir yara && cd yara && tar xf ../v4.1.0.tar.gz \
+    && cd yara-4.1.0/ && ./bootstrap.sh && ./configure --enable-cuckoo --enable-dotnet && make && make install
 
 COPY . .
 
-RUN go get github.com/EFForg/yaya && cd $GOPATH/src/github.com/EFForg/yaya && go build && go install 
+RUN go get github.com/EFForg/yaya && cd $GOPATH/src/github.com/EFForg/yaya && go build && go install
 
 RUN mkdir /out/
 
 RUN yaya update && yaya export /out/yaya.rules
 
-FROM scratch AS bin
-
-COPY --from=build /out/yaya.rules ./
+COPY --from=yaya /out/yaya.rules ./

@@ -35,3 +35,5 @@ Commands:
 	scan - perform a yara scan on the directory at <path>
 	export - export all yara rules in single yar file in <path>
 ```
+## Docker
+YAYA includes a docker file and can be run inside a container as well by linking the path to be scanned to a path in the container. 

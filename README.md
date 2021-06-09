@@ -17,10 +17,13 @@ Yaya depends on the following packages outside the standard library:
 * https://github.com/hillu/go-yara
 * https://github.com/jinzhu/gorm
 
-You must also install the yara4 C libraries. We recommend you install these from source: 
-https://yara.readthedocs.io/en/stable/gettingstarted.html
+You must also install the yara4 C libraries. We recommend you install these from source with the following command: 
 
-
+```
+wget https://github.com/VirusTotal/yara/archive/refs/tags/v4.1.0.tar.gz && mkdir yara && cd yara && tar xf ../v4.1.0.tar.gz \
+    && cd yara-4.1.0/ && ./bootstrap.sh && ./configure --enable-cuckoo --enable-magic --enable-dotnet && make && sudo make install && sudo ldconfig
+```
+More info and docs can be [found here](https://yara.readthedocs.io/en/stable/gettingstarted.html)
 ## Running
 [![asciicast](https://asciinema.org/a/344120.svg)](https://asciinema.org/a/344120)
 

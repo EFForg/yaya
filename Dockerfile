@@ -19,7 +19,7 @@ RUN apk add libmagic
 WORKDIR /src
 
 RUN wget https://github.com/VirusTotal/yara/archive/refs/tags/v4.1.0.tar.gz && mkdir yara && cd yara && tar xf ../v4.1.0.tar.gz \
-    && cd yara-4.1.0/ && ./bootstrap.sh && ./configure --enable-cuckoo --enable-dotnet && make && make install
+    && cd yara-4.1.0/ && ./bootstrap.sh && ./configure --enable-cuckoo --enable-magic --enable-dotnet && make && make install
 
 COPY . .
 

@@ -42,7 +42,7 @@ func Exists(path string) (bool, error) {
 // Warning prints a warning if there is a non fatal error
 func Warning(err error) {
 	if err != nil {
-		log.Printf("WARNING: %s", err)
+		log.Printf("[!] WARNING: %s", err)
 	}
 }
 

@@ -146,7 +146,7 @@ func initYaya(db *gorm.DB) {
 
 // updateRules checks git repostitories for any new rules that have been added
 func updateRules() {
-	fmt.Println("Updating YARA Rules...")
+	log.Println("Updating YARA Rules...")
 	pullRulesets()
 	findRules()
 }
@@ -176,7 +176,7 @@ func pullRuleset(ruleset *Ruleset) {
 	rulesetPath := path.Join(rulesetsPath, ruleset.Name)
 	pathExists, _ := Exists(rulesetPath)
 	if !pathExists {
-		fmt.Printf("git clone %q\n", ruleset.URL)
+		log.Printf("git clone %q", ruleset.URL)
 
 		_, err := git.PlainClone(rulesetPath, false, &git.CloneOptions{
 			URL: ruleset.URL,
@@ -185,10 +185,10 @@ func pullRuleset(ruleset *Ruleset) {
 			log.Println(err)
 		}
 	} else {
-		fmt.Printf("git pull %s", ruleset.Name)
+		log.Printf("git pull %s", ruleset.Name)
 		// We instantiate a new repository targeting the given path (the .git folder)
 		r, err := git.PlainOpen(rulesetPath)
-		Warning(err)
+    Warning(err)
 
 		// Get the working directory for the repository
 		w, err := r.Worktree()
@@ -196,7 +196,9 @@ func pullRuleset(ruleset *Ruleset) {
 
 		// Pull the latest changes from the origin remote and merge into the current branch
 		err = w.Pull(&git.PullOptions{RemoteName: "origin"})
-		Warning(err)
+    if err != nil && !(strings.Contains(err.Error(), "already")) {
+      Warning(err)
+    }
 	}
 }
 
@@ -215,7 +217,7 @@ func updateRulesetRules(ruleset *Ruleset, db *gorm.DB) {
 	if !ruleset.Enabled {
 		return
 	}
-	fmt.Printf("loading %q located at %s\n", ruleset.Name, rulesetPath)
+	log.Printf("loading %q located at %s", ruleset.Name, rulesetPath)
 	if !pathExists {
 		Warning(fmt.Errorf("the ruleset path %s doesn't exist, disabling for now", rulesetPath))
 		ruleset.Enabled = false
